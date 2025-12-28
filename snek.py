@@ -20,9 +20,11 @@ SCREEN_SIZE = Vec(600, 600)
 CELL_SIZE = 20
 SPEED = 11
 
-
+#programIcon = pygame.image.load('pyicon.png')
 window = pygame.display.set_mode(SCREEN_SIZE.tuple())
 pygame.display.set_caption("SNEK GAME")
+#pygame.display.set_icon(programIcon)
+
 clock = pygame.time.Clock()
 
 def get_random_position():
@@ -67,7 +69,7 @@ def render():
     text_surface = font.render("Score " + str(score), True, (40,150,50)) 
     window.blit(text_surface, (CELL_SIZE,7))
     
-    text_surface = font.render("Time " + str(time),True, (40,150,50))
+    text_surface = font.render("Time " + str("{:.2f}".format(time)),True, (40,150,50))
     window.blit(text_surface,  (SCREEN_SIZE.x-100,7))
     
 
