@@ -11,21 +11,22 @@ class Vec:
         return (self.x, self.y)
 
     def has_collided_with(self, other):
-        return self.x == other.x and self.y == other.y:
+        return self.x == other.x and self.y == other.y
 
 pygame.init()
 
 # Constants
 SCREEN_SIZE = Vec(600, 600)
 CELL_SIZE = 20
-SPEED = 7
+SPEED = 11
 
-def get_random_position():
-    return Vec (random.randrange(CELL_SIZE,SCREEN_SIZE.x -CELL_SIZE,CELL_SIZE),random.randrange(CELL_SIZE*2,SCREEN_SIZE.y-CELL_SIZE,CELL_SIZE))
 
 window = pygame.display.set_mode(SCREEN_SIZE.tuple())
 pygame.display.set_caption("SNEK GAME")
 clock = pygame.time.Clock()
+
+def get_random_position():
+    return Vec (random.randrange(CELL_SIZE,SCREEN_SIZE.x -CELL_SIZE,CELL_SIZE),random.randrange(CELL_SIZE*2,SCREEN_SIZE.y-CELL_SIZE,CELL_SIZE))
 
 time=0
 score=0 
@@ -33,23 +34,23 @@ body=[Vec(200,200), Vec(200,200-CELL_SIZE), Vec(200,200-(CELL_SIZE*2)), Vec(200-
 dir=Vec(0,CELL_SIZE)
 apple=get_random_position()
 bad_apple = get_random_position()
-
-
 is_running = True
-while is_running:
-    clock.tick(SPEED)
-    time = time+ (1.0 / SPEED)
-    
-    # events
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if (event.key == K_w or event.key == K_UP) and dir.y!=CELL_SIZE: dir = Vec(0,-CELL_SIZE)
-            if (event.key == K_s or event.key == K_DOWN) and dir.y!=-CELL_SIZE: dir = Vec(0,CELL_SIZE)
-            if (event.key == K_a or event.key == K_LEFT) and dir.x!=CELL_SIZE: dir = Vec(-CELL_SIZE,0)
-            if (event.key == K_d or event.key == K_RIGHT) and dir.x!=-CELL_SIZE: dir = Vec(CELL_SIZE,0)
+is_quit = False
 
-  
-    # render     
+def is_valid_position(pos):
+    for b in body:
+        if b.has_collided_with(pos):
+            return False
+    return True
+
+def get_valid_random_position():
+
+    pos = get_random_position()
+    while not is_valid_position(pos):
+        pos = get_random_position()
+    return pos
+
+def render():
     window.fill((255,245,110))
     for b in range(0,len(body)-1):
         pygame.draw.rect(window,(40,150,50),(body[b].x,body[b].y,CELL_SIZE,CELL_SIZE))
@@ -69,11 +70,37 @@ while is_running:
     text_surface = font.render("Time " + str(time),True, (40,150,50))
     window.blit(text_surface,  (SCREEN_SIZE.x-100,7))
     
-    font = pygame.font.SysFont("algerian", 46)
-    text_surface = font.render("SNEK " ,True, (40,150,50))
-    window.blit(text_surface,  (280,7))
+
+    if not is_running:
+        font = pygame.font.SysFont("algerian", 46)
+        text_surface = font.render("Press Space to Quit " ,True, (40,150,50))
+        window.blit(text_surface,  (SCREEN_SIZE.x / 4, SCREEN_SIZE.y / 2))
     
     pygame.display.flip()
+
+
+while is_running:
+    clock.tick(SPEED)
+    time = time+ (1.0 / SPEED)
+    
+    # events
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if (event.key == K_w or event.key == K_UP) and dir.y!=CELL_SIZE: 
+                dir = Vec(0,-CELL_SIZE)
+                break
+            elif (event.key == K_s or event.key == K_DOWN) and dir.y!=-CELL_SIZE: 
+                dir = Vec(0,CELL_SIZE)
+                break
+            elif (event.key == K_a or event.key == K_LEFT) and dir.x!=CELL_SIZE: 
+                dir = Vec(-CELL_SIZE,0)
+                break
+            elif (event.key == K_d or event.key == K_RIGHT) and dir.x!=-CELL_SIZE: 
+                dir = Vec(CELL_SIZE,0)
+                break
+
+     
+    render()
 
     # logic     
     for b in range (len (body)-1,0,-1):
@@ -98,9 +125,22 @@ while is_running:
         i=len(body)-1
         score=score+1
         body.append(Vec(body[i].x,body[i].y))
-        apple=get_random_position()
-        bad_apple=get_random_position()
+        apple=get_valid_random_position()
+        bad_apple=get_valid_random_position()
+        while bad_apple.has_collided_with(apple):
+            bad_apple=get_valid_random_position()
 
     # see if we have eaten a bad apple
     if body[0].has_collided_with(bad_apple):
         is_running = False
+
+
+while not is_quit:
+    clock.tick(60)
+    render()
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                is_quit = True
+
+pygame.quit()
